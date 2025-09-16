@@ -1,0 +1,9 @@
+{
+  "name": "s2-cartography-slideshow-vercel",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "start": "vercel start"
+  }
+}

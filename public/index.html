@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartographie des process & points de contrôle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Container principal */
+        .slideshow-container {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom right, #f8fafc, #ffffff, #f0f9ff);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Barre de progression */
+        .progress-bar {
+            height: 4px;
+            background: #e0f2fe;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #38bdf8, #0284c7);
+            transition: width 0.5s ease;
+            box-shadow: 0 1px 2px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Contenu principal */
+        .main-content {
+            flex: 1;
+            padding: 48px;
+            overflow: hidden;
+        }
+
+        .slide {
+            height: 100%;
+        }
+
+        /* Footer */
+        .footer {
+            height: 64px;
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #e0f2fe;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .footer-signature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #64748b;
+        }
+
+        .author-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom right, #38bdf8, #0284c7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .slide-counter {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-button {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #bae6fd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0284c7;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: #f0f9ff;
+            border-color: #7dd3fc;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.2);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Styles communs */
+        .gradient-line {
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #38bdf8, #0284c7);
+            margin-bottom: 16px;
+            border-radius: 2px;
+        }
+
+        .main-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slide-in {
+            from { 
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes scale-in {
+            from { 
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes pulse-subtle {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fade-in 0.6s ease-out forwards;
+        }
+        
+        .animate-fade-in-delayed {
+            animation: fade-in 0.6s ease-out 0.3s forwards;
+            opacity: 0;
+        }
+        
+        .animate-slide-up {
+            animation: slide-up 0.6s ease-out forwards;
+        }
+        
+        .animate-slide-in {
+            animation: slide-in 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .animate-scale-in {
+            animation: scale-in 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s ease-in-out infinite;
+        }
+
+        /* Styles spécifiques aux slides */
+        .icon-badge {
+            width: 96px;
+            height: 96px;
+            background: linear-gradient(to bottom right, #38bdf8, #0284c7);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 32px;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.25);
+        }
+
+        .icon-badge-lg {
+            width: 96px;
+            height: 96px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0f2fe;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #7dd3fc;
+        }
+
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(to bottom right, #e0f2fe, #bae6fd);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0284c7;
+            margin-bottom: 24px;
+        }
+
+        .process-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .process-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .process-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(to bottom right, #38bdf8, #0284c7);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
+        }
+
+        .highlight-card {
+            background: linear-gradient(to bottom right, #0284c7, #0369a1);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border: 1px solid #e0f2fe;
+        }
+
+        .warning-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            border: 2px solid #fed7aa;
+            transition: all 0.3s;
+        }
+
+        .warning-card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .case-card {
+            background: linear-gradient(to bottom right, #e0e7ff, #f0f9ff);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border: 1px solid #c7d2fe;
+        }
+
+        .resource-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            border: 1px solid #e0f2fe;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .resource-card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #7dd3fc;
+        }
+
+        .action-card {
+            background: linear-gradient(to right, #f0f9ff, white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            border: 1px solid #bae6fd;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #f0f9ff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #0369a1;
+            font-weight: 500;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .check-icon {
+            color: #0284c7;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .split-card {
+            background: linear-gradient(to bottom right, #f0f9ff, white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0f2fe;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <!-- Barre de progression -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 7%"></div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="main-content">
+            <div class="slide" id="slideContent">
+                <!-- Le contenu sera injecté par JavaScript -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-signature">
+                <div class="author-badge">DA</div>
+                <span class="footer-text">Dr Dan Amzallag - Formation Continue</span>
+            </div>
+            
+            <div class="slide-counter" id="slideCounter">1 / 14</div>
+            
+            <div class="nav-buttons">
+                <button class="nav-button" id="prevBtn" onclick="prevSlide()" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button class="nav-button" id="nextBtn" onclick="nextSlide()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        
+        const slides = [
+            {
+                id: 'title',
+                type: 'title',
+                title: 'Cartographie des process',
+                subtitle: '& points de contrôle',
+                duration: '1h45',
+                program: 'Bloc 1 – Entretiens (courts & longs)',
+                author: 'Dr Dan Amzallag'
+            },
+            {
+                id: 'objectives',
+                type: 'objectives',
+                title: 'Objectifs S2',
+                items: [
+                    { icon: '🗺️', text: 'Cartographier Proposer → Réaliser → Tracer → Facturer' },
+                    { icon: '✅', text: 'Identifier les points de contrôle qualité et les rôles Ph/PPH' },
+                    { icon: '🛡️', text: 'Sécuriser la traçabilité (CR, DP/DMP) et la facturation (TAC/ASI/ASS)' },
+                    { icon: '🎯', text: "Éviter les erreurs fréquentes et standardiser l'animation en équipe" }
+                ]
+            },
+            {
+                id: 'common-map',
+                type: 'process-flow',
+                title: 'La carte commune (court & long)',
+                steps: [
+                    {
+                        number: '1',
+                        title: 'Proposer',
+                        description: "Repérer l'éligibilité + consentement (court) / adhésion signée (long)",
+                        icon: '👥'
+                    },
+                    {
+                        number: '2',
+                        title: 'Réaliser',
+                        description: 'Trame (court) ou Évaluation → 2 Thématiques → Synthèse (long)',
+                        icon: '📊'
+                    },
+                    {
+                        number: '3',
+                        title: 'Tracer',
+                        description: 'Formulaires/CR, supports remis, MAJ DP/DMP si pertinent',
+                        icon: '📝'
+                    },
+                    {
+                        number: '4',
+                        title: 'Facturer',
+                        description: "Code du jour (ASI/ASS ou court) + TAC à l'adhésion + TPH si distance",
+                        icon: '💳'
+                    }
+                ]
+            },
+            {
+                id: 'short-overview',
+                type: 'info-card',
+                title: 'Entretien court – Vue d\'ensemble',
+                icon: '⏰',
+                points: [
+                    { label: 'Public', value: 'Femme enceinte / antalgiques (opioïdes, etc.)' },
+                    { label: 'Durée', value: '10–20 min • Trame brève, centrée sécurité' },
+                    { label: 'Supports', value: 'Remis + vérification de la compréhension' },
+                    { label: 'Traçabilité', value: 'CR concis + MAJ DP/DMP si utile' },
+                    { label: 'Facturation', value: 'Code entretien court' }
+                ]
+            },
+            {
+                id: 'short-process',
+                type: 'split-view',
+                title: 'Court – Processus détaillé',
+                left: {
+                    title: 'Proposer → Réaliser',
+                    items: [
+                        'Repérage au comptoir/ordonnance',
+                        'Consentement oral ou écrit',
+                        'Objectif patient, messages clés',
+                        'Vérifier compréhension (reformulation)',
+                        'Plan de suivi si nécessaire'
+                    ]
+                },
+                right: {
+                    title: 'Tracer → Facturer',
+                    items: [
+                        'CR concis (5-10 lignes)',
+                        'Supports remis listés',
+                        'MAJ DP/DMP si pertinent',
+                        'Code entretien court',
+                        'Justificatifs archivés'
+                    ]
+                }
+            },
+            {
+                id: 'long-overview',
+                type: 'info-card',
+                title: 'Entretien long (asthme/AVK/AOD) – Vue',
+                icon: '❤️',
+                points: [
+                    { label: 'Éligibilité', value: 'Traitement chronique (≥ 6 mois)' },
+                    { label: 'Année 1', value: '1 Évaluation + 2 Thématiques' },
+                    { label: 'Années suivantes', value: '2 Thématiques par an' },
+                    { label: 'Télésoin', value: 'Ajouter TPH en plus du code de l\'étape' },
+                    { label: 'Règle', value: 'Une seule pharmacie par patient' }
+                ]
+            },
+            {
+                id: 'long-process',
+                type: 'split-view',
+                title: 'Long – Processus détaillé',
+                left: {
+                    title: 'Proposer → Réaliser',
+                    items: [
+                        'Vérifier éligibilité chronique',
+                        'Faire signer l\'adhésion (TAC)',
+                        'Évaluation initiale (grille dédiée)',
+                        '2 Thématiques ciblées',
+                        'Synthèse et plan d\'actions'
+                    ]
+                },
+                right: {
+                    title: 'Tracer → Facturer',
+                    items: [
+                        'Formulaires complets',
+                        'CR détaillé + MAJ DP/DMP',
+                        'ASI (Année 1) / ASS (suivantes)',
+                        'TPH si télésoin',
+                        'Adhésion signée archivée'
+                    ]
+                }
+            },
+            {
+                id: 'telesoin',
+                type: 'highlight',
+                title: 'Télésoin : réflexe TPH',
+                icon: '📞',
+                mainPoint: 'Tout entretien à distance = ajouter le code TPH en plus du code principal',
+                subPoints: [
+                    'Rappeler le jour J sur la feuille d\'actes',
+                    'Noter dans le dossier patient',
+                    'Tiers payant applicable',
+                    'Tarifs TTC selon référentiel en vigueur'
+                ]
+            },
+            {
+                id: 'control-points',
+                type: 'checklist',
+                title: 'Points de contrôle – Check rapide',
+                items: [
+                    'Éligibilité OK (critères + ordonnance)',
+                    'Consentement/Adhésion finalisés',
+                    'CR & pièces archivés',
+                    'Code & date corrects (TPH si télésoin)',
+                    'Prochain contact planifié'
+                ]
+            },
+            {
+                id: 'common-errors',
+                type: 'warning-cards',
+                title: 'Erreurs fréquentes & parades',
+                errors: [
+                    {
+                        error: 'Oublier TAC à l\'adhésion',
+                        solution: 'Check-list facturation à portée de main',
+                        icon: '⚠️'
+                    },
+                    {
+                        error: 'Télésoin sans TPH',
+                        solution: 'Réflexe TPH systématique',
+                        icon: '📞'
+                    },
+                    {
+                        error: 'CR non archivé',
+                        solution: 'Modèle de CR express + contrôle hebdo',
+                        icon: '📝'
+                    },
+                    {
+                        error: 'Confusion Année 1/suivantes',
+                        solution: 'Aide-mémoire affiché en salle',
+                        icon: '🔄'
+                    }
+                ]
+            },
+            {
+                id: 'case-study-1',
+                type: 'case-study',
+                title: 'Cas pratique 1 – Court (Femme enceinte)',
+                icon: '👶',
+                tasks: [
+                    'Classer 10 actions dans Proposer/Réaliser/Tracer/Facturer',
+                    'Rédiger un CR express (5 lignes) + lister supports remis',
+                    'Objectif : sécuriser messages clés + justificatifs'
+                ],
+                highlight: 'Durée : 10 minutes en binôme'
+            },
+            {
+                id: 'case-study-2',
+                type: 'case-study',
+                title: 'Cas pratique 2 – Long (Asthme)',
+                icon: '💨',
+                tasks: [
+                    'Décider de l\'adhésion (TAC) à partir d\'une ordonnance',
+                    'Compléter 5 items clés de l\'Évaluation',
+                    'Choisir 2 Thématiques (ex. technique d\'inhalation + observance)',
+                    'Planifier la Synthèse et déterminer les codes (+ TPH si télésoin)'
+                ],
+                highlight: 'Durée : 15 minutes en groupe'
+            },
+            {
+                id: 'resources',
+                type: 'resource-grid',
+                title: 'Ressources & fiches pratiques',
+                resources: [
+                    { icon: '💳', title: 'Mémo Séquences', desc: 'TAC/ASI/ASS/TPH • quotas' },
+                    { icon: '📋', title: 'Mode d\'emploi', desc: 'Étapes et modèles' },
+                    { icon: '💨', title: 'Asthme', desc: 'Dispositifs pas-à-pas' },
+                    { icon: '❤️', title: 'AVK', desc: 'Grille surveillance INR' },
+                    { icon: '👶', title: 'Femme enceinte', desc: 'Déroulé & conseils' },
+                    { icon: '📦', title: 'Templates', desc: 'À déposer dans Digiforma' }
+                ]
+            },
+            {
+                id: 'conclusion',
+                type: 'action-plan',
+                title: 'Conclusion & engagement d\'équipe',
+                actions: [
+                    {
+                        icon: '✅',
+                        title: 'Check-list \'Prêt à facturer\'',
+                        desc: 'Adopter au comptoir et en salle de soins'
+                    },
+                    {
+                        icon: '👥',
+                        title: 'Référent CR',
+                        desc: 'Objectif : CR envoyés < 72h'
+                    },
+                    {
+                        icon: '📊',
+                        title: '2 KPI ce mois-ci',
+                        desc: '% TPH corrects et % dossiers complets'
+                    }
+                ]
+            }
+        ];
+
+        function renderSlide(slide) {
+            let html = '';
+
+            switch (slide.type) {
+                case 'title':
+                    html = `
+                        <div class="flex-center">
+                            <div class="text-center" style="max-width: 800px;">
+                                <div class="icon-badge animate-pulse-subtle">
+                                    <span style="font-size: 48px; color: white;">🗺️</span>
+                                </div>
+                                <h1 class="animate-fade-in" style="font-size: 48px; font-weight: bold; color: #1e293b; line-height: 1.2; margin-bottom: 16px;">
+                                    ${slide.title}
+                                </h1>
+                                <p class="animate-slide-up" style="font-size: 30px; color: #0284c7; font-weight: 600; margin-bottom: 32px;">
+                                    ${slide.subtitle}
+                                </p>
+                                <div class="badge" style="margin-bottom: 32px;">
+                                    <p style="color: #0369a1;">Durée : ${slide.duration}</p>
+                                </div>
+                                <div class="animate-fade-in-delayed" style="padding-top: 16px; color: #64748b;">
+                                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${slide.program}</p>
+                                    <p style="font-size: 16px;">${slide.author}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'objectives':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1;" class="grid-2">
+                                ${slide.items.map((item, index) => `
+                                    <div class="card animate-scale-in" style="animation-delay: ${index * 0.1}s;">
+                                        <div class="icon-container">
+                                            <span style="font-size: 32px;">${item.icon}</span>
+                                        </div>
+                                        <p style="font-size: 18px; color: #475569; line-height: 1.6;">${item.text}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'process-flow':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center;">
+                                <div style="width: 100%;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; position: relative;">
+                                        ${slide.steps.map((step, index) => `
+                                            <div class="process-box animate-slide-in" style="animation-delay: ${index * 0.15}s;">
+                                                <div class="process-step">
+                                                    <div class="process-icon">
+                                                        <span style="font-size: 32px;">${step.icon}</span>
+                                                    </div>
+                                                    <div style="text-align: center;">
+                                                        <div style="color: #0284c7; font-weight: bold; font-size: 20px; margin-bottom: 8px;">
+                                                            ${step.number}. ${step.title}
+                                                        </div>
+                                                        <p style="font-size: 14px; color: #64748b; max-width: 200px; margin: 0 auto;">
+                                                            ${step.description}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                ${index < slide.steps.length - 1 ? `
+                                                    <div style="position: absolute; top: 40px; left: 100%; width: 100%; display: flex; align-items: center; justify-content: center; margin-left: -32px; pointer-events: none;">
+                                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="2">
+                                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                                        </svg>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'info-card':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center;">
+                                <div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+                                    <div class="info-card">
+                                        <div style="display: flex; align-items: start; gap: 32px;">
+                                            <div style="width: 96px; height: 96px; background: linear-gradient(to bottom right, #e0f2fe, #bae6fd); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <span style="font-size: 48px; color: #0284c7;">${slide.icon}</span>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                ${slide.points.map((point, index) => `
+                                                    <div class="animate-slide-in" style="display: flex; align-items: start; gap: 16px; margin-bottom: 24px; animation-delay: ${index * 0.1}s;">
+                                                        <div style="width: 8px; height: 8px; background: #38bdf8; border-radius: 50%; margin-top: 8px; flex-shrink: 0;"></div>
+                                                        <div style="flex: 1;">
+                                                            <span style="font-weight: 600; color: #0369a1;">${point.label}:</span>
+                                                            <span style="margin-left: 8px; color: #64748b;">${point.value}</span>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'split-view':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1;" class="grid-2">
+                                <div class="split-card animate-slide-in">
+                                    <h3 style="font-size: 24px; font-weight: bold; color: #0369a1; margin-bottom: 24px;">
+                                        ${slide.left.title}
+                                    </h3>
+                                    <ul style="list-style: none;">
+                                        ${slide.left.items.map(item => `
+                                            <li class="list-item">
+                                                <span class="check-icon">✓</span>
+                                                <span style="color: #475569;">${item}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                <div class="split-card animate-slide-in" style="animation-delay: 0.2s; background: linear-gradient(to bottom right, white, #f0f9ff);">
+                                    <h3 style="font-size: 24px; font-weight: bold; color: #0369a1; margin-bottom: 24px;">
+                                        ${slide.right.title}
+                                    </h3>
+                                    <ul style="list-style: none;">
+                                        ${slide.right.items.map(item => `
+                                            <li class="list-item">
+                                                <span class="check-icon">✓</span>
+                                                <span style="color: #475569;">${item}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'highlight':
+                    html = `
+                        <div class="flex-center">
+                            <div style="max-width: 1000px; width: 100%;">
+                                <div class="highlight-card">
+                                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                                        <div class="icon-badge-lg animate-pulse-subtle">
+                                            <span style="font-size: 64px; color: white;">${slide.icon}</span>
+                                        </div>
+                                        <h2 style="font-size: 48px; font-weight: bold; margin: 32px 0;">${slide.title}</h2>
+                                        <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 24px; width: 100%; margin-bottom: 32px;">
+                                            <p style="font-size: 24px; font-weight: 600;">${slide.mainPoint}</p>
+                                        </div>
+                                        <div style="text-align: left; width: 100%; max-width: 600px;">
+                                            ${slide.subPoints.map(point => `
+                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                                    <span style="color: #fde047;">⭐</span>
+                                                    <span style="font-size: 18px;">${point}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'checklist':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center;">
+                                <div style="width: 100%; max-width: 800px; margin: 0 auto;">
+                                    <div class="info-card">
+                                        ${slide.items.map((item, index) => `
+                                            <div class="animate-slide-in" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: #f0f9ff; border-radius: 12px; margin-bottom: 16px; animation-delay: ${index * 0.1}s;">
+                                                <span style="color: #0284c7; font-size: 24px;">✅</span>
+                                                <span style="font-size: 18px; color: #475569;">${item}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'warning-cards':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1;" class="grid-2">
+                                ${slide.errors.map((item, index) => `
+                                    <div class="warning-card animate-scale-in" style="animation-delay: ${index * 0.1}s;">
+                                        <div style="display: flex; align-items: start; gap: 16px;">
+                                            <div style="width: 64px; height: 64px; background: linear-gradient(to bottom right, #fed7aa, #fdba74); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <span style="font-size: 32px; color: #ea580c;">${item.icon}</span>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <h3 style="font-weight: bold; color: #ea580c; margin-bottom: 8px;">${item.error}</h3>
+                                                <div style="display: flex; align-items: start; gap: 8px;">
+                                                    <span style="color: #16a34a; margin-top: 2px;">→</span>
+                                                    <p style="color: #15803d; font-weight: 500;">${item.solution}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'case-study':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center;">
+                                <div style="width: 100%; max-width: 1000px; margin: 0 auto;">
+                                    <div class="case-card">
+                                        <div style="display: flex; align-items: start; gap: 32px;">
+                                            <div style="width: 96px; height: 96px; background: linear-gradient(to bottom right, #6366f1, #38bdf8); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);">
+                                                <span style="font-size: 48px;">${slide.icon}</span>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <div style="margin-bottom: 32px;">
+                                                    ${slide.tasks.map((task, index) => `
+                                                        <div class="animate-slide-in" style="display: flex; align-items: start; gap: 12px; margin-bottom: 24px; animation-delay: ${index * 0.15}s;">
+                                                            <div style="width: 32px; height: 32px; background: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">
+                                                                ${index + 1}
+                                                            </div>
+                                                            <p style="font-size: 18px; color: #475569;">${task}</p>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                                <div class="badge" style="background: #fef3c7; border: 1px solid #fde68a; display: inline-block;">
+                                                    <p style="color: #92400e; font-weight: 600;">${slide.highlight}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'resource-grid':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1;" class="grid-3">
+                                ${slide.resources.map((resource, index) => `
+                                    <div class="resource-card animate-scale-in" style="animation-delay: ${index * 0.1}s;">
+                                        <div style="width: 64px; height: 64px; background: linear-gradient(to bottom right, #e0f2fe, #bae6fd); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0284c7; margin: 0 auto 16px;">
+                                            <span style="font-size: 32px;">${resource.icon}</span>
+                                        </div>
+                                        <h3 style="font-weight: bold; color: #1e293b; margin-bottom: 8px;">${resource.title}</h3>
+                                        <p style="font-size: 14px; color: #64748b;">${resource.desc}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'action-plan':
+                    html = `
+                        <div style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 32px;">
+                                <div class="gradient-line"></div>
+                                <h2 class="main-title">${slide.title}</h2>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center;">
+                                <div style="width: 100%;">
+                                    ${slide.actions.map((action, index) => `
+                                        <div class="action-card animate-slide-in" style="margin-bottom: 24px; animation-delay: ${index * 0.15}s;">
+                                            <div style="display: flex; align-items: center; gap: 24px;">
+                                                <div style="width: 80px; height: 80px; background: linear-gradient(to bottom right, #38bdf8, #0284c7); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);">
+                                                    <span style="font-size: 40px;">${action.icon}</span>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <h3 style="font-size: 24px; font-weight: bold; color: #0369a1; margin-bottom: 8px;">
+                                                        ${action.title}
+                                                    </h3>
+                                                    <p style="font-size: 18px; color: #64748b;">${action.desc}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    html = '<div>Type de slide non implémenté</div>';
+            }
+
+            return html;
+        }
+
+        function updateSlide() {
+            const slideContent = document.getElementById('slideContent');
+            slideContent.innerHTML = renderSlide(slides[currentSlide]);
+            
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progressPercentage + '%';
+            
+            // Update slide counter
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${slides.length}`;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === slides.length - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize first slide
+        updateSlide();
+    </script>
+</body>
+</html>
